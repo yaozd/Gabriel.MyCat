@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Gabriel.MyCat.Message;
+using Gabriel.MyCat.Util;
 
 namespace Gabriel.MyCat
 {
@@ -102,7 +103,14 @@ namespace Gabriel.MyCat
         {
             if (root.Depth == 0)
             {
-                root.Evens.Peek().Exception = exception;
+                var ctx = _manager.GetContext();
+                var even = root.Evens.Peek();
+                if (!ctx.IsException)
+                {
+                    ctx.IsException = true;
+                    even.IsException = true;
+                }
+                even.Exception = exception;
                 return root;
             }
             var T = root.Evens.Peek().Transactions.Pop();
@@ -116,6 +124,8 @@ namespace Gabriel.MyCat
             var ctx = _manager.GetContext();
             if (ctx.Transaction.Depth == 0)
             {
+                ctx.EndTime = DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss ffff");
+                var jsonStr = FastJsonHelper.ToJsJson(ctx);
                 _manager.Dispose();
                 return;
             }
